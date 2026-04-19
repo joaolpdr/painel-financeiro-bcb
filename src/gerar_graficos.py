@@ -86,31 +86,39 @@ def grafico_variacao_mensal(df_ptax):
 
 # ── Gráfico 3 — Selic e CDI ──────────────────────────────
 def grafico_selic_cdi(df_series):
-    fig, ax = plt.subplots()
+    fig, axes = plt.subplots(1, 2, figsize=(13, 5))
 
-    for serie, cor in [("Selic", "#2980b9"), ("CDI", "#e74c3c")]:
+    for ax, serie, cor in [
+        (axes[0], "Selic", "#2980b9"),
+        (axes[1], "CDI",   "#e74c3c")
+    ]:
         grupo = df_series[df_series["serie"] == serie].copy()
         grupo["data"] = pd.to_datetime(grupo["data"])
-        ax.plot(
-            grupo["data"],
-            grupo["valor"],
-            label=serie,
-            color=cor,
-            linewidth=2
-        )
+        ax.plot(grupo["data"], grupo["valor"], color=cor, linewidth=2)
+        ax.set_title(f"Evolução da {serie} — Últimos 12 Meses", fontsize=12, fontweight="bold")
+        ax.set_xlabel("Data")
+        ax.set_ylabel("Taxa (% a.m.)")
+        ax.grid(axis="y", alpha=0.3)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%b/%y"))
+        ax.xaxis.set_major_locator(mdates.MonthLocator(interval=2))
+        plt.setp(ax.xaxis.get_majorticklabels(), rotation=30, ha="right")
 
-    formatar_eixo_data(ax)
-    ax.set_title("Evolução da Selic e CDI — Últimos 12 Meses", fontsize=14, fontweight="bold")
-    ax.set_xlabel("Data")
-    ax.set_ylabel("Taxa (%)")
-    ax.legend()
-    ax.grid(axis="y", alpha=0.3)
+        # Valor atual no final da linha
+        ultimo = grupo.iloc[-1]
+        ax.annotate(
+            f"{ultimo['valor']:.4f}%",
+            xy=(ultimo["data"], ultimo["valor"]),
+            xytext=(10, 0),
+            textcoords="offset points",
+            fontsize=9,
+            color=cor,
+            fontweight="bold"
+        )
 
     plt.tight_layout()
     plt.savefig("output/03_selic_cdi.png", dpi=150)
     plt.close()
     print("✅ 03_selic_cdi.png")
-
 
 # ── Gráfico 4 — IPCA acumulado ────────────────────────────
 def grafico_ipca(df_series):
